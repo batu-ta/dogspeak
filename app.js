@@ -1,17 +1,25 @@
 /* ==========================================================================
-   WEB AUDIO API SYNTHESIZER ENGINE
+   WEB AUDIO API SYNTHESIZER ENGINE (WITH ANALYSER & MODULATORS)
    ========================================================================== */
 let audioCtx = null;
 let noiseBuffer = null;
 let pantInterval = null;
 let isPanting = false;
+let analyser = null;
 
 // Initialize Audio Context lazily on user interaction
 function getAudioContext() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // Create noise buffer once
         noiseBuffer = createNoiseBuffer(audioCtx);
+        
+        // Setup Analyser Node
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.connect(audioCtx.destination);
+        
+        // Start Canvas Oscilloscope Loop
+        drawVisualizer();
     }
     if (audioCtx.state === 'suspended') {
         audioCtx.resume();
@@ -30,18 +38,32 @@ function createNoiseBuffer(ctx) {
     return buffer;
 }
 
-// 1. HAPPY BARK SYNTHESIS
+// Get dynamic synthesis values from sliders
+function getPitchValue() {
+    const slider = document.getElementById('slider-pitch');
+    return slider ? parseFloat(slider.value) : 380;
+}
+
+function getRaspValue() {
+    const slider = document.getElementById('slider-rasp');
+    return slider ? parseFloat(slider.value) / 100 : 0.4;
+}
+
+// 1. HAPPY BARK SYNTHESIS (WITH PARAMETRIC MODULATION & HEAD SHAKE)
 function playBark() {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
+    
+    const basePitch = getPitchValue();
+    const noiseLevel = getRaspValue();
 
     // Pitch Carrier (Oscillator)
     const osc = ctx.createOscillator();
     osc.type = 'triangle';
     
-    // Pitch envelope: drops rapidly from 400Hz to 120Hz (mimics bark vocal shape)
-    osc.frequency.setValueAtTime(420, now);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.08);
+    // Pitch envelope: drops rapidly (mimics bark vocal shape)
+    osc.frequency.setValueAtTime(basePitch, now);
+    osc.frequency.exponentialRampToValueAtTime(basePitch * 0.28, now + 0.08);
 
     // Raspy Noise component
     const noise = ctx.createBufferSource();
@@ -49,7 +71,7 @@ function playBark() {
 
     const noiseFilter = ctx.createBiquadFilter();
     noiseFilter.type = 'bandpass';
-    noiseFilter.frequency.setValueAtTime(320, now);
+    noiseFilter.frequency.setValueAtTime(basePitch * 0.75, now);
     noiseFilter.Q.setValueAtTime(2.0, now);
 
     // Gain Nodes (Volume Envelopes)
@@ -58,16 +80,16 @@ function playBark() {
     oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
 
     const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.3, now);
+    noiseGain.gain.setValueAtTime(noiseLevel, now);
     noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
-    // Connections
+    // Connections to Analyser (Visualizer)
     osc.connect(oscGain);
-    oscGain.connect(ctx.destination);
+    oscGain.connect(analyser);
 
     noise.connect(noiseFilter);
     noiseFilter.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
+    noiseGain.connect(analyser);
 
     // Start & Stop
     osc.start(now);
@@ -75,39 +97,65 @@ function playBark() {
     noise.start(now);
     noise.stop(now + 0.12);
 
-    // Animate mouth on CSS Art Dog
+    // Trigger physical reaction animations
     const mouth = document.getElementById('dog-mouth');
-    if (mouth) {
+    const head = document.getElementById('dog-head-element');
+    
+    if (mouth && head) {
         mouth.classList.add('mouth-bark');
+        head.classList.add('head-bark');
+        setExpression('happy');
+        
         setTimeout(() => {
             mouth.classList.remove('mouth-bark');
-        }, 110);
+            head.classList.remove('head-bark');
+            // reset expression after bark if not in extreme slider modes
+            const sliderVal = parseInt(document.getElementById('excitement-slider').value, 10);
+            if (sliderVal > 20 && sliderVal < 80) {
+                setExpression(null);
+            }
+        }, 120);
     }
 }
 
-// 2. PLAYFUL GROWL SYNTHESIS
+// 2. PLAYFUL GROWL SYNTHESIS (WITH PARAMETRIC MODULATION & ANGRY EXPRESSION)
 function playGrowl() {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
     const duration = 0.9;
+    
+    const basePitch = getPitchValue() * 0.22; // Low pitch
+    const noiseLevel = getRaspValue() * 0.6;
 
     // Low rumble carrier
     const osc = ctx.createOscillator();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(70, now);
+    osc.frequency.setValueAtTime(basePitch, now);
 
     // LFO to create rapid vibration/rumble (vibrato)
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(42, now);
+    lfo.frequency.setValueAtTime(38, now);
 
     const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(8, now);
+    lfoGain.gain.setValueAtTime(10, now);
 
     // Lowpass filter to keep it deep and chesty
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(130, now);
+    filter.frequency.setValueAtTime(basePitch * 1.8, now);
+
+    // Raspy Noise overlay
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = 'lowpass';
+    noiseFilter.frequency.setValueAtTime(100, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(noiseLevel, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     // Volume envelope
     const gainNode = ctx.createGain();
@@ -122,40 +170,57 @@ function playGrowl() {
 
     osc.connect(filter);
     filter.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gainNode.connect(analyser);
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(analyser);
 
     // Start & Stop
     lfo.start(now);
     osc.start(now);
+    noise.start(now);
     lfo.stop(now + duration);
     osc.stop(now + duration);
+    noise.stop(now + duration);
+
+    // Angry visual expression
+    setExpression('angry');
+    setTimeout(() => {
+        const sliderVal = parseInt(document.getElementById('excitement-slider').value, 10);
+        if (sliderVal > 20 && sliderVal < 80) setExpression(null);
+        else if (sliderVal <= 20) setExpression('sad');
+        else if (sliderVal >= 80) setExpression('happy');
+    }, duration * 1000);
 }
 
-// 3. WHIMPER / WHINE SYNTHESIS
+// 3. WHIMPER / WHINE SYNTHESIS (WITH PARAMETRIC MODULATION & SAD EXPRESSION)
 function playWhine() {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
-    const duration = 0.7;
+    const duration = 0.75;
+    
+    const basePitch = getPitchValue() * 2.5; // High pitch whimper
 
     // High pitch sine carrier
     const osc = ctx.createOscillator();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(950, now);
-    osc.frequency.linearRampToValueAtTime(1100, now + 0.3);
-    osc.frequency.exponentialRampToValueAtTime(850, now + duration);
+    osc.frequency.setValueAtTime(basePitch, now);
+    osc.frequency.linearRampToValueAtTime(basePitch * 1.15, now + 0.3);
+    osc.frequency.exponentialRampToValueAtTime(basePitch * 0.9, now + duration);
 
     // LFO for crying vibrato
     const lfo = ctx.createOscillator();
     lfo.type = 'sine';
-    lfo.frequency.setValueAtTime(14, now);
+    lfo.frequency.setValueAtTime(13, now);
 
     const lfoGain = ctx.createGain();
-    lfoGain.gain.setValueAtTime(25, now);
+    lfoGain.gain.setValueAtTime(30, now);
 
     // Volume Envelope
     const gainNode = ctx.createGain();
     gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.linearRampToValueAtTime(0.25, now + 0.15);
+    gainNode.gain.linearRampToValueAtTime(0.3, now + 0.15);
     gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
     // Connections
@@ -163,18 +228,27 @@ function playWhine() {
     lfoGain.connect(osc.frequency);
 
     osc.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gainNode.connect(analyser);
 
     lfo.start(now);
     osc.start(now);
     lfo.stop(now + duration);
     osc.stop(now + duration);
+
+    // Sad/Scared visual expression
+    setExpression('sad');
+    setTimeout(() => {
+        const sliderVal = parseInt(document.getElementById('excitement-slider').value, 10);
+        if (sliderVal > 20 && sliderVal < 80) setExpression(null);
+        else if (sliderVal >= 80) setExpression('happy');
+    }, duration * 1000);
 }
 
 // 4. PANNING GENERATOR (Breathing loop)
 function triggerSinglePant() {
     const ctx = getAudioContext();
     const now = ctx.currentTime;
+    const noiseLevel = getRaspValue();
 
     // Breath component using noise
     const noise = ctx.createBufferSource();
@@ -186,14 +260,13 @@ function triggerSinglePant() {
     filter.Q.setValueAtTime(1.5, now);
 
     const gainNode = ctx.createGain();
-    // Exhale burst
     gainNode.gain.setValueAtTime(0.001, now);
-    gainNode.gain.linearRampToValueAtTime(0.12, now + 0.05);
+    gainNode.gain.linearRampToValueAtTime(noiseLevel * 0.35, now + 0.05);
     gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
     noise.connect(filter);
     filter.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gainNode.connect(analyser);
 
     noise.start(now);
     noise.stop(now + 0.18);
@@ -203,7 +276,6 @@ function startPanting(speedMs) {
     if (isPanting) clearInterval(pantInterval);
     isPanting = true;
     
-    // Quick loop to simulate panting
     pantInterval = setInterval(() => {
         triggerSinglePant();
     }, speedMs);
@@ -215,10 +287,80 @@ function stopPanting() {
 }
 
 /* ==========================================================================
+   CANVAS OSCILLOSCOPE WAVEFORM VISUALIZER
+   ========================================================================== */
+function drawVisualizer() {
+    requestAnimationFrame(drawVisualizer);
+    if (!analyser) return;
+
+    const canvas = document.getElementById('visualizer-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // Fit canvas width/height to CSS display dimensions
+    const width = canvas.width = canvas.clientWidth;
+    const height = canvas.height = canvas.clientHeight;
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteTimeDomainData(dataArray);
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    // Set background color matching the active theme background
+    const bgAppColor = getComputedStyle(document.body).getPropertyValue('--bg-app').trim() || '#f9f9f9';
+    ctx.fillStyle = bgAppColor;
+    ctx.fillRect(0, 0, width, height);
+    
+    // Line style matching the theme primary accent
+    const accentColor = getComputedStyle(document.body).getPropertyValue('--accent').trim() || '#333';
+    ctx.lineWidth = 3.5;
+    ctx.strokeStyle = accentColor;
+    
+    // Waveform glow effect
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = accentColor;
+    
+    ctx.beginPath();
+    
+    const sliceWidth = width / bufferLength;
+    let x = 0;
+    
+    for (let i = 0; i < bufferLength; i++) {
+        const v = dataArray[i] / 128.0;
+        const y = (v * height) / 2;
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+        
+        x += sliceWidth;
+    }
+    
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+    
+    // Reset shadow
+    ctx.shadowBlur = 0;
+}
+
+/* ==========================================================================
    INTERACTIVE JAVASCRIPT CONTROLLERS
    ========================================================================== */
 
-// 1. Theme Toggles
+// 1. Expressions helper
+const headElement = document.getElementById('dog-head-element');
+function setExpression(expression) {
+    if (!headElement) return;
+    headElement.classList.remove('express-angry', 'express-sad', 'express-happy');
+    if (expression) {
+        headElement.classList.add(`express-${expression}`);
+    }
+}
+
+// 2. Theme Toggles
 const themeButtons = document.querySelectorAll('.theme-btn');
 themeButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -230,23 +372,66 @@ themeButtons.forEach(btn => {
     });
 });
 
-// 2. Dog Parts Body Language Translator
+// 3. Eyeballs Mouse Tracking
+const sandboxArea = document.getElementById('dog-sandbox-area');
+const pupilL = document.getElementById('pupil-l');
+const pupilR = document.getElementById('pupil-r');
+
+if (sandboxArea && pupilL && pupilR) {
+    sandboxArea.addEventListener('mousemove', (e) => {
+        const rect = sandboxArea.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        
+        // Get parent eye elements offsets relative to sandbox
+        const eyeLRect = pupilL.parentElement.getBoundingClientRect();
+        const eyeRRect = pupilR.parentElement.getBoundingClientRect();
+        
+        const eyeLX = eyeLRect.left - rect.left + eyeLRect.width / 2;
+        const eyeLY = eyeLRect.top - rect.top + eyeLRect.height / 2;
+        
+        const eyeRX = eyeRRect.left - rect.left + eyeRRect.width / 2;
+        const eyeRY = eyeRRect.top - rect.top + eyeRRect.height / 2;
+        
+        // Compute displacement for Left eye
+        const dxL = mouseX - eyeLX;
+        const dyL = mouseY - eyeLY;
+        const angleL = Math.atan2(dyL, dxL);
+        const distL = Math.min(4.5, Math.hypot(dxL, dyL) / 18);
+        pupilL.style.transform = `translate(${Math.cos(angleL) * distL}px, ${Math.sin(angleL) * distL}px)`;
+        
+        // Compute displacement for Right eye
+        const dxR = mouseX - eyeRX;
+        const dyR = mouseY - eyeRY;
+        const angleR = Math.atan2(dyR, dxR);
+        const distR = Math.min(4.5, Math.hypot(dxR, dyR) / 18);
+        pupilR.style.transform = `translate(${Math.cos(angleR) * distR}px, ${Math.sin(angleR) * distR}px)`;
+    });
+    
+    // Reset eyes when cursor leaves sandbox
+    sandboxArea.addEventListener('mouseleave', () => {
+        pupilL.style.transform = 'translate(0px, 0px)';
+        pupilR.style.transform = 'translate(0px, 0px)';
+    });
+}
+
+// 4. Dog Parts Body Language Translator
 const bodyLanguageData = {
     ears: {
-        title: "👂 Ears (Body Language)",
-        desc: "Perked ears indicate interest, attention, or readiness. Flipped back or flattened ears signal friendliness, submission, or fear depending on context."
+        title: "👂 Ears (Behavior Profile)",
+        desc: "Perked ears indicate alertness, focus, or curious listening. Drooped or flattened ears suggest submission, friendliness, or minor anxiety."
     },
     snout: {
         title: "👃 Snout & Mouth",
-        desc: "A relaxed, slightly open mouth indicates content. Yawning can indicate tiredness or stress. A tight closed mouth signals focus or potential warning."
+        desc: "A relaxed, open mouth with tongue showing means content. A tight closed mouth shows high focus. Licking lips indicates self-soothing or mild stress."
     },
     paws: {
-        title: "🐾 Paws (Play Signals)",
-        desc: "A paw lifted up is an invitation to play, a request for food/attention, or a sign of submission. Scratching the ground means marking scent."
+        title: "🐾 Play Bow & Paw Signals",
+        desc: "Lifting a single paw is an invitation to play or a request for attention. Digging behavior indicates scent marking or burrowing instincts."
     },
     tail: {
-        title: "🐕 Tail (Emotional Guide)",
-        desc: "Tail wags are emotional indicators. Higher wags indicate happiness, broad side-to-side wags mean playfulness, and a tucked tail means submission or fear."
+        title: "🐕 Tail Position Analyzer",
+        desc: "A broad horizontal wag indicates friendliness. A high vertical wag signals high energy or excitement. A low, tucked tail shows submission or fear."
     }
 };
 
@@ -262,7 +447,7 @@ interactiveElements.forEach(el => {
             titleEl.textContent = data.title;
             descEl.textContent = data.desc;
             
-            // Play corresponding sound as feedback
+            // Audio Feedback
             if (part === 'snout') playBark();
             else if (part === 'ears') playWhine();
             else if (part === 'tail') playBark();
@@ -272,56 +457,55 @@ interactiveElements.forEach(el => {
     });
 });
 
-// 3. Tail Physics Sandbox Slider
+// 5. Tail Physics Slider
 const slider = document.getElementById('excitement-slider');
 const valBadge = document.getElementById('excitement-value');
 const stateText = document.getElementById('tail-state-text');
 const dogTail = document.getElementById('dog-tail');
-const dogEarLeft = document.getElementById('dog-ear-left');
-const dogEarRight = document.getElementById('dog-ear-right');
+const dogContainer = document.querySelector('.dog-container');
 
 slider.addEventListener('input', () => {
     const value = parseInt(slider.value, 10);
     valBadge.textContent = `${value}%`;
 
-    // Clear previous wag classes
+    // Clear classes
     dogTail.className = 'dog-tail';
-    document.querySelector('.dog-container').className = 'dog-container';
+    dogContainer.classList.remove('ears-back', 'ears-perked');
 
     if (value <= 20) {
-        // Submissive / Fearful
         dogTail.classList.add('tail-tucked');
-        document.querySelector('.dog-container').classList.add('ears-back');
-        stateText.textContent = "Tucked / Fearful";
+        dogContainer.classList.add('ears-back');
+        stateText.textContent = "Tucked / Submissive";
+        setExpression('sad');
         stopPanting();
         document.getElementById('pant-text').textContent = "Start Panting";
     }
     else if (value <= 50) {
-        // Relaxed
         dogTail.classList.add('tail-wag-slow');
         stateText.textContent = "Relaxed / Friendly";
+        setExpression(null);
         stopPanting();
         document.getElementById('pant-text').textContent = "Start Panting";
     }
     else if (value <= 80) {
-        // Playful / Excited
         dogTail.classList.add('tail-wag-medium');
-        document.querySelector('.dog-container').classList.add('ears-perked');
+        dogContainer.classList.add('ears-perked');
         stateText.textContent = "Excited / Playful";
-        startPanting(300); // Normal panting
+        setExpression(null);
+        startPanting(300); // normal panting speed
         document.getElementById('pant-text').textContent = "Stop Panting";
     }
     else {
-        // Pure Joy / Helicopter Wag
         dogTail.classList.add('tail-wag-fast');
-        document.querySelector('.dog-container').classList.add('ears-perked');
-        stateText.textContent = "Pure Joy / Helicopter Wag";
-        startPanting(180); // Rapid panting
+        dogContainer.classList.add('ears-perked');
+        stateText.textContent = "Helicopter Wag / Ecstatic";
+        setExpression('happy');
+        startPanting(160); // fast panting speed
         document.getElementById('pant-text').textContent = "Stop Panting";
     }
 });
 
-// 4. Soundboard Button Listeners
+// 6. Soundboard Trigger Events
 document.getElementById('btn-bark').addEventListener('click', playBark);
 document.getElementById('btn-growl').addEventListener('click', playGrowl);
 document.getElementById('btn-whine').addEventListener('click', playWhine);
@@ -339,7 +523,7 @@ pantBtn.addEventListener('click', () => {
     }
 });
 
-// 5. Quiz Engine
+// 7. Canine Matcher Quiz
 const quizQuestions = [
     {
         q: "What is your typical energy level during the weekend?",
@@ -371,12 +555,10 @@ let currentQuizStep = 0;
 let quizScores = { frenchie: 0, golden: 0, shiba: 0, collie: 0 };
 
 function loadQuizQuestion() {
-    const quizWorkspace = document.getElementById('quiz-workspace');
     const questionEl = document.getElementById('quiz-question');
     const optionsGrid = document.getElementById('quiz-options');
     const progressFill = document.getElementById('quiz-progress-fill');
 
-    // Update Progress
     const progress = (currentQuizStep / quizQuestions.length) * 100;
     progressFill.style.width = `${progress}%`;
 
@@ -394,7 +576,6 @@ function loadQuizQuestion() {
         btn.className = 'quiz-opt-btn';
         btn.textContent = opt.text;
         btn.addEventListener('click', () => {
-            // Add Scores
             for (let key in opt.score) {
                 quizScores[key] += opt.score[key];
             }
@@ -433,7 +614,6 @@ function showQuizResult() {
     questionEl.textContent = "Your Match Results";
     optionsGrid.innerHTML = '';
 
-    // Find highest score
     let highestBreed = 'frenchie';
     let maxScore = -1;
     for (let key in quizScores) {
@@ -456,12 +636,11 @@ function showQuizResult() {
     optionsGrid.appendChild(resultCard);
 
     document.getElementById('btn-reset-quiz').addEventListener('click', () => {
-        // Reset state
         currentQuizStep = 0;
         quizScores = { frenchie: 0, golden: 0, shiba: 0, collie: 0 };
         loadQuizQuestion();
     });
 }
 
-// Start Quiz on page load
+// Start Quiz on load
 loadQuizQuestion();

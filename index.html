@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DogSpeak - Interactive Body Language & Sound Synthesizer</title>
-    <meta name="description" content="Discover how to translate your dog's expressions and sounds using our interactive CSS Art sandbox and real-time Web Audio API synthesizer.">
+    <title>DogSpeak - Premium Interactive Body Language & Sound Analyzer</title>
+    <meta name="description" content="An advanced interactive sandbox featuring a real-time Web Audio API synthesizer, dynamic CSS Art animations, and live canvas wave visualizers.">
     
     <!-- Google Fonts for Premium Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Inter:wght@300..600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-sunny-park">
     <!-- Header -->
     <header class="app-header">
         <div class="header-container">
-            <h1 class="logo-text">🐾 DogSpeak</h1>
-            <p class="tagline">Translate Tail Wags & Barks in Real-Time</p>
+            <h1 class="logo-text">🐾 DogSpeak Pro</h1>
+            <p class="tagline">Canine Acoustic Analyzer & Interactive Behavioral Sandbox</p>
             
             <div class="theme-picker" role="radiogroup" aria-label="Select Theme">
                 <button class="theme-btn active" id="theme-sunny" data-theme="sunny-park" aria-label="Sunny Park Theme">☀️ Sunny Park</button>
@@ -29,29 +29,33 @@
 
     <!-- Main Container -->
     <main class="main-container">
-        <!-- Grid Layout: Left (Interactive Sandbox), Right (Control Workspace) -->
+        <!-- Grid Layout: Left (Interactive Sandbox & Visualizer), Right (Control Workspace) -->
         <div class="app-grid">
             
-            <!-- Left Side: Interactive CSS Art & Interpreter -->
+            <!-- Left Side: Interactive CSS Art & Real-time Canvas Wave Visualizer -->
             <section class="interactive-panel card">
-                <h2>Interactive Workspace</h2>
-                <p class="instruction-text">Hover or click on the dog's body parts (ears, tail, snout, paws) to see what they mean and hear the feedback!</p>
+                <h2>Acoustic & Behavioral Sandbox</h2>
+                <p class="instruction-text">Hover or click on the dog's body parts to examine behavior signals. Move your cursor around the sandbox to see the dog's eyes track your movement!</p>
                 
                 <!-- CSS Art Dog Container -->
-                <div class="dog-sandbox">
-                    <div class="dog-container">
+                <div class="dog-sandbox" id="dog-sandbox-area">
+                    <div class="dog-container" id="dog-actor">
                         <!-- Ears -->
                         <div class="dog-ear ear-left" id="dog-ear-left" data-part="ears"></div>
                         <div class="dog-ear ear-right" id="dog-ear-right" data-part="ears"></div>
                         
                         <!-- Main Head -->
-                        <div class="dog-head">
+                        <div class="dog-head" id="dog-head-element">
+                            <!-- Eyebrows for expressions -->
+                            <div class="eyebrow eyebrow-left" id="brow-l"></div>
+                            <div class="eyebrow eyebrow-right" id="brow-r"></div>
+
                             <!-- Eyes & Blinking -->
                             <div class="dog-eye eye-left">
-                                <div class="pupil"></div>
+                                <div class="pupil" id="pupil-l"></div>
                             </div>
                             <div class="dog-eye eye-right">
-                                <div class="pupil"></div>
+                                <div class="pupil" id="pupil-r"></div>
                             </div>
                             
                             <!-- Snout & Mouth -->
@@ -76,17 +80,23 @@
 
                 <!-- Interpreter Output Card -->
                 <div class="interpreter-output" id="interpreter-card">
-                    <h3 id="interpreter-title">🐾 Click a part to translate</h3>
+                    <h3 id="interpreter-title">🐾 Interactive Behavioral Analyzer</h3>
                     <p id="interpreter-desc">Hover or click on the dog's ears, nose, tail, or paws to read their body language signals.</p>
+                </div>
+
+                <!-- Real-time Oscilloscope Canvas -->
+                <div class="visualizer-wrapper">
+                    <h3>📊 Real-Time Sound Wave Oscilloscope</h3>
+                    <canvas id="visualizer-canvas" class="visualizer-canvas"></canvas>
                 </div>
             </section>
 
-            <!-- Right Side: Control Panels & Synthesizers -->
+            <!-- Right Side: Control Panels, Pitch Modulator & Quiz -->
             <section class="control-panel">
-                <!-- Sandbox 1: Tail Physics Slider -->
+                <!-- Sandbox 1: Tail Physics & Excitement Control -->
                 <div class="card panel-card">
-                    <h2>Tail Physics Sandbox</h2>
-                    <p class="panel-desc">Adjust the dog's excitement level to observe realistic, dynamically computed tail wag speeds and postures.</p>
+                    <h2>Dynamic Tail Physics Control</h2>
+                    <p class="panel-desc">Adjust the dog's excitement level to observe mathematically scaled tail wag velocities and ear postures.</p>
                     
                     <div class="slider-container">
                         <label for="excitement-slider" class="slider-label">
@@ -102,11 +112,23 @@
                     </div>
                 </div>
 
-                <!-- Sandbox 2: Soundboard Synthesizer (Web Audio API) -->
+                <!-- Sandbox 2: Soundboard & Real-time Pitch Modulators -->
                 <div class="card panel-card">
-                    <h2>Procedural Sound Synthesizer</h2>
-                    <p class="panel-desc">Synthesize various canine vocalizations in real-time. No audio assets are loaded; everything is synthesized procedurally in code.</p>
+                    <h2>Procedural Acoustic Synthesizer</h2>
+                    <p class="panel-desc">Modify the synthesis parameters below to customize the pitch (tonality) and raspiness (noise) of the dog's voice in real-time.</p>
                     
+                    <!-- Synthesizer Parameter Sliders -->
+                    <div class="synth-sliders">
+                        <div class="slider-row">
+                            <label for="slider-pitch">Vocal Pitch (Base Frequency):</label>
+                            <input type="range" id="slider-pitch" class="app-slider small-slider" min="60" max="800" value="380">
+                        </div>
+                        <div class="slider-row">
+                            <label for="slider-rasp">Vocal Raspiness (Noise Blend):</label>
+                            <input type="range" id="slider-rasp" class="app-slider small-slider" min="0" max="100" value="40">
+                        </div>
+                    </div>
+
                     <div class="sound-grid">
                         <button class="sound-btn" id="btn-bark" aria-label="Trigger Happy Bark">
                             <span class="btn-icon">🔊</span>
@@ -129,16 +151,13 @@
 
                 <!-- Sandbox 3: Interactive Quiz -->
                 <div class="card panel-card">
-                    <h2>Canine Matcher</h2>
-                    <p class="panel-desc">Find out which dog breed fits your current lifestyle and energy profile.</p>
+                    <h2>Canine Matcher Profile</h2>
+                    <p class="panel-desc">Evaluate your weekend lifestyle and compatibility metrics to discover your ideal breed match.</p>
                     
                     <div class="quiz-container" id="quiz-workspace">
-                        <!-- Dynamic Steps Rendered via JS -->
                         <div id="quiz-step-view">
                             <h3 id="quiz-question">Question Loading...</h3>
-                            <div class="quiz-options-grid" id="quiz-options">
-                                <!-- Options will be injected here -->
-                            </div>
+                            <div class="quiz-options-grid" id="quiz-options"></div>
                         </div>
                         
                         <!-- Quiz Progress Bar -->
@@ -154,7 +173,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-        <p>Built with ❤️ using **Vanilla CSS Art** and the **Web Audio API** for the DEV.to Weekend Challenge.</p>
+        <p>Built with ❤️ using **Vanilla CSS Art**, **HTML5 Canvas**, and **Web Audio API** for the DEV.to Weekend Challenge.</p>
     </footer>
 
     <script src="app.js"></script>
