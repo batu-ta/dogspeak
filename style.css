@@ -1,0 +1,764 @@
+/* ==========================================================================
+   DESIGN SYSTEM & CUSTOM PROPERTIES
+   ========================================================================== */
+:root {
+    --font-primary: 'Inter', sans-serif;
+    --font-display: 'Fredoka', sans-serif;
+    
+    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* Layout Dimensions */
+    --container-width: 1100px;
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    --border-radius-sm: 8px;
+    
+    /* Shadow Levels */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 16px 32px rgba(0, 0, 0, 0.12);
+}
+
+/* --- THEME 1: SUNNY PARK --- */
+.theme-sunny-park {
+    --bg-app: hsl(45, 80%, 96%);
+    --bg-card: hsl(0, 0%, 100%);
+    --text-primary: hsl(200, 40%, 15%);
+    --text-secondary: hsl(200, 20%, 45%);
+    --accent: hsl(140, 45%, 40%); /* Park Green */
+    --accent-hover: hsl(140, 45%, 32%);
+    --accent-light: hsl(140, 30%, 92%);
+    --border: hsl(45, 40%, 90%);
+    
+    /* Dog Colors */
+    --dog-color: hsl(35, 90%, 65%);       /* Golden Golden Retriever */
+    --dog-dark-color: hsl(35, 80%, 55%);
+    --dog-light-color: hsl(35, 95%, 82%);
+    --dog-nose-color: hsl(200, 40%, 12%);
+}
+
+/* --- THEME 2: COZY RUG --- */
+.theme-cozy-rug {
+    --bg-app: hsl(30, 40%, 95%);
+    --bg-card: hsl(0, 0%, 100%);
+    --text-primary: hsl(20, 40%, 15%);
+    --text-secondary: hsl(20, 20%, 45%);
+    --accent: hsl(25, 75%, 45%); /* Terracotta Brown */
+    --accent-hover: hsl(25, 75%, 38%);
+    --accent-light: hsl(25, 40%, 92%);
+    --border: hsl(30, 20%, 88%);
+    
+    /* Dog Colors */
+    --dog-color: hsl(28, 40%, 48%);       /* Chocolate Lab */
+    --dog-dark-color: hsl(28, 45%, 38%);
+    --dog-light-color: hsl(28, 30%, 75%);
+    --dog-nose-color: hsl(28, 50%, 15%);
+}
+
+/* --- THEME 3: TWILIGHT WALK --- */
+.theme-twilight-walk {
+    --bg-app: hsl(220, 40%, 12%);
+    --bg-card: hsl(220, 35%, 18%);
+    --text-primary: hsl(220, 20%, 92%);
+    --text-secondary: hsl(220, 15%, 70%);
+    --accent: hsl(45, 95%, 60%); /* Warm Streetlamp Yellow */
+    --accent-hover: hsl(45, 95%, 50%);
+    --accent-light: hsl(220, 30%, 25%);
+    --border: hsl(220, 30%, 25%);
+    
+    /* Dog Colors */
+    --dog-color: hsl(210, 15%, 82%);      /* Silver Huskie/Weimaraner */
+    --dog-dark-color: hsl(210, 15%, 70%);
+    --dog-light-color: hsl(210, 20%, 92%);
+    --dog-nose-color: hsl(220, 40%, 12%);
+}
+
+/* ==========================================================================
+   RESET & GLOBAL STYLES
+   ========================================================================== */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-primary);
+    background-color: var(--bg-app);
+    color: var(--text-primary);
+    transition: background-color 0.4s ease, color 0.4s ease;
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+h1, h2, h3 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+h2 {
+    font-size: 1.6rem;
+    color: var(--accent);
+    transition: color 0.4s ease;
+}
+
+p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.badge {
+    background-color: var(--accent);
+    color: var(--bg-card);
+    padding: 4px 10px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background-color 0.4s ease;
+}
+
+/* ==========================================================================
+   LAYOUT STRUCTURE
+   ========================================================================== */
+.app-header {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 1.5rem 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.header-container {
+    max-width: var(--container-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.logo-text {
+    font-size: 2.2rem;
+    color: var(--accent);
+    margin: 0;
+    transition: color 0.4s ease;
+}
+
+.tagline {
+    font-family: var(--font-primary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    margin: 0;
+    flex: 1 1 100%;
+}
+
+@media (min-width: 768px) {
+    .tagline {
+        flex: auto;
+        margin-left: 2rem;
+    }
+}
+
+.main-container {
+    max-width: var(--container-width);
+    width: 100%;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+    flex: 1;
+}
+
+.app-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 900px) {
+    .app-grid {
+        grid-template-columns: 1.2fr 1fr;
+    }
+}
+
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--border-radius-lg);
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.panel-card {
+    margin-bottom: 2rem;
+}
+
+.panel-desc {
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ==========================================================================
+   THEME PICKER
+   ========================================================================== */
+.theme-picker {
+    display: flex;
+    gap: 0.5rem;
+    background-color: var(--bg-app);
+    padding: 4px;
+    border-radius: 50px;
+    border: 1px solid var(--border);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.theme-btn {
+    border: none;
+    background: none;
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition-smooth);
+}
+
+.theme-btn.active {
+    background-color: var(--bg-card);
+    color: var(--accent);
+    box-shadow: var(--shadow-sm);
+}
+
+/* ==========================================================================
+   CSS ART DOG
+   ========================================================================== */
+.dog-sandbox {
+    background-color: var(--bg-app);
+    height: 320px;
+    border-radius: var(--border-radius-md);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.dog-container {
+    position: relative;
+    width: 200px;
+    height: 250px;
+    margin-top: 20px;
+}
+
+/* Head */
+.dog-head {
+    position: absolute;
+    top: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 130px;
+    height: 120px;
+    background-color: var(--dog-color);
+    border-radius: 50% 50% 40% 40%;
+    z-index: 5;
+    box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.05);
+    transition: background-color 0.4s ease;
+}
+
+/* Ears */
+.dog-ear {
+    position: absolute;
+    width: 38px;
+    height: 85px;
+    background-color: var(--dog-dark-color);
+    border-radius: 50% 50% 30% 30%;
+    z-index: 4;
+    transform-origin: top center;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.4s ease;
+    cursor: pointer;
+}
+
+.ear-left {
+    left: 20px;
+    top: 25px;
+    transform: rotate(15deg);
+}
+
+.ear-right {
+    right: 20px;
+    top: 25px;
+    transform: rotate(-15deg);
+}
+
+/* Ears perk up on hover/interact */
+.dog-ear:hover, .ears-perked .dog-ear {
+    transform: translateY(-8px) scaleY(1.05);
+}
+
+.ears-perked .ear-left {
+    transform: rotate(-8deg) translateY(-8px);
+}
+
+.ears-perked .ear-right {
+    transform: rotate(8deg) translateY(-8px);
+}
+
+/* Ears folded back (scared/submissive) */
+.ears-back .ear-left {
+    transform: rotate(38deg) translateY(4px);
+}
+
+.ears-back .ear-right {
+    transform: rotate(-38deg) translateY(4px);
+}
+
+/* Eyes & Blinking Animation */
+@keyframes blink {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+}
+
+.dog-eye {
+    position: absolute;
+    top: 38px;
+    width: 16px;
+    height: 20px;
+    background-color: var(--bg-card);
+    border-radius: 50%;
+    animation: blink 4s infinite;
+    transition: background-color 0.4s ease;
+}
+
+.eye-left {
+    left: 28px;
+}
+
+.eye-right {
+    right: 28px;
+}
+
+.pupil {
+    width: 10px;
+    height: 12px;
+    background-color: var(--dog-nose-color);
+    border-radius: 50%;
+    margin: 3px auto 0;
+    transition: background-color 0.4s ease;
+}
+
+/* Snout & Mouth */
+.dog-snout {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 65px;
+    height: 45px;
+    background-color: var(--dog-light-color);
+    border-radius: 50% 50% 45% 45%;
+    z-index: 6;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.4s ease;
+    cursor: pointer;
+}
+
+.dog-nose {
+    width: 22px;
+    height: 14px;
+    background-color: var(--dog-nose-color);
+    border-radius: 50% 50% 40% 40%;
+    margin: 6px auto 0;
+    transition: background-color 0.4s ease;
+}
+
+.dog-mouth {
+    width: 14px;
+    height: 6px;
+    background-color: var(--dog-nose-color);
+    border-radius: 0 0 50px 50px;
+    margin: 4px auto 0;
+    transition: all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Barking mouth scaling */
+.mouth-bark {
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background-color: hsl(0, 70%, 35%);
+    transform: scale(1.6);
+}
+
+/* Body & Legs */
+.dog-body {
+    position: absolute;
+    top: 105px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 130px;
+    background-color: var(--dog-color);
+    border-radius: 50% 50% 40% 40%;
+    z-index: 2;
+    transition: background-color 0.4s ease;
+}
+
+.dog-leg {
+    position: absolute;
+    bottom: -15px;
+    width: 24px;
+    height: 45px;
+    background-color: var(--dog-dark-color);
+    border-radius: 12px;
+    z-index: 1;
+    transition: background-color 0.4s ease;
+    cursor: pointer;
+}
+
+.leg-front-left {
+    left: 12px;
+}
+
+.leg-front-right {
+    right: 12px;
+}
+
+.leg-back-left {
+    left: -6px;
+    bottom: -10px;
+    background-color: var(--dog-dark-color);
+    transform: rotate(10deg);
+}
+
+.leg-back-right {
+    right: -6px;
+    bottom: -10px;
+    background-color: var(--dog-dark-color);
+    transform: rotate(-10deg);
+}
+
+/* Tail & Wags */
+.dog-tail {
+    position: absolute;
+    bottom: 25px;
+    right: -15px;
+    width: 18px;
+    height: 75px;
+    background-color: var(--dog-dark-color);
+    border-radius: 50% 50% 20% 20%;
+    transform-origin: bottom center;
+    transform: rotate(35deg);
+    z-index: 1;
+    transition: background-color 0.4s ease;
+    cursor: pointer;
+}
+
+/* Wag Keyframe Animations */
+@keyframes wag-slow {
+    0%, 100% { transform: rotate(35deg); }
+    50% { transform: rotate(50deg); }
+}
+
+@keyframes wag-medium {
+    0%, 100% { transform: rotate(25deg); }
+    50% { transform: rotate(65deg); }
+}
+
+@keyframes wag-fast {
+    0%, 100% { transform: rotate(15deg); }
+    50% { transform: rotate(75deg); }
+}
+
+@keyframes wag-helicopter {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes wag-tucked {
+    0%, 100% { transform: rotate(-55deg) translate(-10px, 8px); }
+}
+
+/* Active Wag Classes */
+.tail-wag-slow {
+    animation: wag-slow 0.6s infinite ease-in-out;
+}
+
+.tail-wag-medium {
+    animation: wag-medium 0.4s infinite ease-in-out;
+}
+
+.tail-wag-fast {
+    animation: wag-fast 0.2s infinite ease-in-out;
+}
+
+.tail-wag-helicopter {
+    animation: wag-helicopter 0.15s infinite linear;
+}
+
+.tail-tucked {
+    animation: wag-tucked 1s infinite ease-in-out;
+}
+
+/* ==========================================================================
+   INTERPRETER OUTPUT CARD
+   ========================================================================== */
+.instruction-text {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.interpreter-output {
+    background-color: var(--accent-light);
+    border-radius: var(--border-radius-md);
+    padding: 1.5rem;
+    border-left: 5px solid var(--accent);
+    transition: var(--transition-smooth);
+}
+
+.interpreter-output h3 {
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.interpreter-output p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   SLIDERS & WIDGETS
+   ========================================================================== */
+.slider-container {
+    background-color: var(--bg-app);
+    padding: 1.25rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border);
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+}
+
+.app-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: var(--border);
+    outline: none;
+    margin-bottom: 1.25rem;
+    transition: background 0.4s ease;
+}
+
+.app-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.1s ease, background 0.4s ease;
+}
+
+.app-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+
+.slider-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.slider-footer strong {
+    color: var(--accent);
+    transition: color 0.4s ease;
+}
+
+/* ==========================================================================
+   SOUNDBOARD GRID
+   ========================================================================== */
+.sound-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.sound-btn {
+    border: 1px solid var(--border);
+    background-color: var(--bg-app);
+    border-radius: var(--border-radius-md);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.sound-btn:hover {
+    background-color: var(--accent-light);
+    border-color: var(--accent);
+    transform: translateY(-2px);
+}
+
+.sound-btn:active {
+    transform: translateY(0);
+}
+
+.sound-btn.active {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.sound-btn.active .btn-text {
+    color: var(--bg-card);
+}
+
+.sound-btn.active .btn-icon {
+    transform: scale(1.15);
+}
+
+.btn-icon {
+    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.btn-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* ==========================================================================
+   QUIZ ENGINE
+   ========================================================================== */
+.quiz-container {
+    background-color: var(--bg-app);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--border);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+.quiz-container h3 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+}
+
+.quiz-options-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.quiz-opt-btn {
+    border: 1px solid var(--border);
+    background-color: var(--bg-card);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-align: left;
+    color: var(--text-primary);
+    transition: var(--transition-smooth);
+}
+
+.quiz-opt-btn:hover {
+    border-color: var(--accent);
+    background-color: var(--accent-light);
+}
+
+.quiz-result-card {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+
+.quiz-result-card h4 {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.quiz-result-card p {
+    font-size: 0.9rem;
+}
+
+.quiz-reset-btn {
+    border: none;
+    background-color: var(--accent);
+    color: var(--bg-card);
+    padding: 0.6rem 1.5rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.quiz-reset-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.quiz-progress-bar {
+    width: 100%;
+    height: 6px;
+    background-color: var(--border);
+    border-radius: 50px;
+    overflow: hidden;
+}
+
+.quiz-progress-fill {
+    height: 100%;
+    background-color: var(--accent);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.app-footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    transition: background-color 0.4s ease, border-color 0.4s ease;
+}
